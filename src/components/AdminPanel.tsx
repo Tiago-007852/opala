@@ -1,3 +1,5 @@
+import { formatKz } from "../utils/format";
+import DishPhoto from "./DishPhoto";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
@@ -738,7 +740,7 @@ export default function AdminPanel({
                       </div>
 
                       <div className="text-right">
-                        <span className="text-sm text-amber-500 font-semibold block">Total: Kz {order.total.toFixed(2)}</span>
+                        <span className="text-sm text-amber-500 font-semibold block">Total: Kz {formatKz(order.total)}</span>
                         <span className="text-[10px] text-gray-500">{new Date(order.timestamp).toLocaleTimeString()}</span>
                       </div>
                     </div>
@@ -937,8 +939,8 @@ export default function AdminPanel({
                     <div key={item.id} className="bg-zinc-950 border border-white/5 rounded-xl overflow-hidden flex flex-col justify-between">
                       <div>
                         <div className="h-44 overflow-hidden relative">
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                          <span className="absolute top-3 right-3 bg-black/60 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded uppercase border border-white/10">Kz {item.price.toFixed(2)}</span>
+                          <DishPhoto item={item} className="w-full h-full" iconSize="w-8 h-8" />
+                          <span className="absolute top-3 right-3 bg-black/60 text-amber-500 text-[10px] font-bold px-2 py-0.5 rounded uppercase border border-white/10">Kz {formatKz(item.price)}</span>
                         </div>
                         <div className="p-4 space-y-2">
                           <span className="text-[9px] uppercase tracking-widest text-amber-400 font-bold block">{item.category}</span>
@@ -960,10 +962,10 @@ export default function AdminPanel({
                               ingredients: item.ingredients.join(', '),
                               averageTime: item.averageTime,
                               tags: item.tags as any[],
-                              calories: item.nutritionalValue.calories,
-                              protein: item.nutritionalValue.protein,
-                              carbs: item.nutritionalValue.carbs,
-                              fat: item.nutritionalValue.fat,
+                              calories: item.nutritionalValue?.calories ?? 0,
+                              protein: item.nutritionalValue?.protein ?? 0,
+                              carbs: item.nutritionalValue?.carbs ?? 0,
+                              fat: item.nutritionalValue?.fat ?? 0,
                               extras: item.extras,
                               sauces: item.sauces
                             });
@@ -1017,11 +1019,14 @@ export default function AdminPanel({
                         <div className="space-y-1">
                           <label className="text-gray-400 uppercase tracking-widest text-[9px]">Categoria</label>
                           <select value={menuForm.category} onChange={(e) => setMenuForm({ ...menuForm, category: e.target.value as any })} className="w-full bg-black border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500">
+                            <option value="pequeno-almoco">Pequeno-Almoço</option>
                             <option value="entradas">Entradas</option>
+                            <option value="petiscos">Petiscos</option>
+                            <option value="fastfood">Fast-Food</option>
                             <option value="principais">Pratos Principais</option>
                             <option value="massas">Massas</option>
-                            <option value="carnes">Carnes</option>
-                            <option value="peixes">Peixes</option>
+                            <option value="carnes">Pratos de Carne</option>
+                            <option value="peixes">Pratos de Peixe</option>
                             <option value="sobremesas">Sobremesas</option>
                             <option value="bebidas">Bebidas</option>
                           </select>
@@ -1039,7 +1044,7 @@ export default function AdminPanel({
 
                       <div className="space-y-1">
                         <label className="text-gray-400 uppercase tracking-widest text-[9px]">Ingredientes (Separados por vírgula)</label>
-                        <input required type="text" placeholder="Ingrediente A, Ingrediente B..." value={menuForm.ingredients} onChange={(e) => setMenuForm({ ...menuForm, ingredients: e.target.value })} className="w-full bg-black border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" />
+                        <input type="text" placeholder="Ingrediente A, Ingrediente B... (opcional)" value={menuForm.ingredients} onChange={(e) => setMenuForm({ ...menuForm, ingredients: e.target.value })} className="w-full bg-black border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-amber-500" />
                       </div>
 
                       <div className="grid md:grid-cols-4 gap-4 pt-2 border-t border-white/5">
@@ -1326,15 +1331,15 @@ export default function AdminPanel({
             <div className="grid md:grid-cols-3 gap-6">
               <div className="bg-zinc-950 border border-white/5 p-6 rounded-xl space-y-2">
                 <span className="text-[10px] uppercase text-gray-500">Receitas Hoje</span>
-                <h4 className="text-2xl font-semibold text-green-400">Kz {revenueToday.toFixed(2)}</h4>
+                <h4 className="text-2xl font-semibold text-green-400">Kz {formatKz(revenueToday)}</h4>
               </div>
               <div className="bg-zinc-950 border border-white/5 p-6 rounded-xl space-y-2">
                 <span className="text-[10px] uppercase text-gray-500">Despesas Lançadas</span>
-                <h4 className="text-2xl font-semibold text-red-400">Kz {totalExpense.toFixed(2)}</h4>
+                <h4 className="text-2xl font-semibold text-red-400">Kz {formatKz(totalExpense)}</h4>
               </div>
               <div className="bg-zinc-950 border border-white/5 p-6 rounded-xl space-y-2">
                 <span className="text-[10px] uppercase text-gray-500">Fluxo de Caixa Líquido</span>
-                <h4 className={`text-2xl font-semibold ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Kz {profit.toFixed(2)}</h4>
+                <h4 className={`text-2xl font-semibold ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>Kz {formatKz(profit)}</h4>
               </div>
             </div>
 
@@ -1365,7 +1370,7 @@ export default function AdminPanel({
                       <td className="p-4 text-gray-400">{rec.category}</td>
                       <td className="p-4 text-gray-500">{new Date(rec.date).toLocaleTimeString()}</td>
                       <td className={`p-4 text-right font-semibold ${rec.type === 'receita' ? 'text-green-400' : 'text-red-400'}`}>
-                        {rec.type === 'receita' ? '+' : '-'} Kz {rec.amount.toFixed(2)}
+                        {rec.type === 'receita' ? '+' : '-'} Kz {formatKz(rec.amount)}
                       </td>
                     </tr>
                   ))}
@@ -1400,7 +1405,7 @@ export default function AdminPanel({
                       <td className="p-4 text-gray-400">{cust.email}</td>
                       <td className="p-4 text-gray-400">{cust.phone}</td>
                       <td className="p-4 text-gray-400">{cust.visits} visitas</td>
-                      <td className="p-4 text-amber-500 font-bold">Kz {cust.totalSpent.toFixed(2)}</td>
+                      <td className="p-4 text-amber-500 font-bold">Kz {formatKz(cust.totalSpent)}</td>
                       <td className="p-4 text-gray-400 italic">{cust.favoriteDish}</td>
                       <td className="p-4">
                         <span className="bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full font-bold text-[10px] border border-amber-500/30">

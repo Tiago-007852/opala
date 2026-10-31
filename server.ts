@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import { menuItems as seedMenu } from "./src/data/menu";
 
 dotenv.config();
 
@@ -26,122 +27,7 @@ if (apiKey) {
 }
 
 // Global In-Memory Store
-let menuItems = [
-  {
-    id: "e1",
-    name: "Carpaccio de Garoupa e Caxinde",
-    description: "Finas fatias de garoupa selvagem marinadas em sumo de limão e infusão de caxinde (capim-limão), pimenta da terra e flor de sal das salinas de Benguela.",
-    price: 12000.00,
-    category: "entradas",
-    image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80",
-    ingredients: ["Garoupa selvagem", "Caxinde", "Limão", "Flor de sal de Benguela"],
-    averageTime: 10,
-    tags: ["Novo", "Mais vendido"],
-    nutritionalValue: { calories: 210, protein: 18, carbs: 6, fat: 12 },
-    extras: [
-      { name: "Azeite de oliva extra virgem", price: 2000.00 }
-    ],
-    sauces: ["Infusão de Caxinde e coentros", "Molho de Limão fresco"]
-  },
-  {
-    id: "e2",
-    name: "Chikuanga Grelhada com Camarão Tigre",
-    description: "Massa de mandioca tradicional (chikuanga) levemente grelhada na chapa, acompanhada de camarões tigre gigantes salteados no alho e jindungo picante.",
-    price: 26000.00,
-    category: "entradas",
-    image: "https://images.unsplash.com/photo-1532636875304-0c8fe119ff91?w=600&auto=format&fit=crop&q=80",
-    ingredients: ["Chikuanga", "Camarão tigre", "Alho", "Jindungo", "Azeite de oliva"],
-    averageTime: 12,
-    tags: ["Picante", "Mais vendido"],
-    nutritionalValue: { calories: 380, protein: 28, carbs: 35, fat: 16 },
-    extras: [
-      { name: "Camarão tigre extra (un)", price: 8000.00 }
-    ],
-    sauces: ["Azeite de Alho e Jindungo", "Manteiga de Limão aromatizada"]
-  },
-  {
-    id: "p1",
-    name: "Moamba de Galinha Real",
-    description: "Peito de galinha do campo cozido lentamente em óleo de palma de Cabinda, quiabos frescos, gila e abóbora, servido com funge de mandioca aveludado.",
-    price: 24500.00,
-    category: "carnes",
-    image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80",
-    ingredients: ["Galinha do campo", "Óleo de palma", "Quiabos", "Funge de mandioca", "Alho e cebola"],
-    averageTime: 25,
-    tags: ["Mais vendido"],
-    nutritionalValue: { calories: 690, protein: 42, carbs: 48, fat: 38 },
-    extras: [
-      { name: "Porção extra de Funge", price: 3000.00 },
-      { name: "Quiabos salteados na chapa", price: 2500.00 }
-    ],
-    sauces: ["Molho espesso de Óleo de Palma", "Molho de Jindungo puro"]
-  },
-  {
-    id: "p2",
-    name: "Tagliatelle de Kizaca e Camarão Tigre",
-    description: "Massa fresca artesanal envolta em creme aveludado de kizaca (folhas de mandioca cozidas) com camarões do mar salteados e finalizada com lascas de coco tostado.",
-    price: 22000.00,
-    category: "massas",
-    image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=600&auto=format&fit=crop&q=80",
-    ingredients: ["Massa de ovos caseiros", "Camarão do mar", "Kizaca", "Leite de coco", "Coco tostado"],
-    averageTime: 18,
-    tags: ["Novo", "Promoção"],
-    nutritionalValue: { calories: 590, protein: 26, carbs: 54, fat: 22 },
-    extras: [
-      { name: "Camarões grelhados extra", price: 7500.00 }
-    ],
-    sauces: ["Emulsão cremosa de Kizaca", "Molho de coco e caril suave"]
-  },
-  {
-    id: "p3",
-    name: "Mufete Imperial da Ilha",
-    description: "Posta de garoupa fresca grelhada na brasa, servida com feijão de óleo de palma, mandioca e banana-pão cozidas, batata-doce e o tradicional molho de cebola picada.",
-    price: 28500.00,
-    category: "peixes",
-    image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&auto=format&fit=crop&q=80",
-    ingredients: ["Garoupa fresca", "Feijão de óleo de palma", "Mandioca cozida", "Banana-pão", "Molho de cebola"],
-    averageTime: 22,
-    tags: ["Sem Glúten", "Mais vendido"],
-    nutritionalValue: { calories: 610, protein: 44, carbs: 42, fat: 20 },
-    extras: [
-      { name: "Banana-pão extra", price: 2000.00 },
-      { name: "Mandioca cozida extra", price: 2000.00 }
-    ],
-    sauces: ["Molho vinagrete de cebola tradicional", "Azeite de alho e ervas"]
-  },
-  {
-    id: "s1",
-    name: "Cocada Cremosa com Sorvete de Caxinde",
-    description: "Cocada artesanal morna e extremamente cremosa, servida com sorvete artesanal de caxinde (capim-limão) e raspas de coco tostado.",
-    price: 7500.00,
-    category: "sobremesas",
-    image: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&auto=format&fit=crop&q=80",
-    ingredients: ["Coco ralado fresco", "Açúcar de cana", "Sorvete de caxinde", "Leite condensado"],
-    averageTime: 10,
-    tags: ["Mais vendido"],
-    nutritionalValue: { calories: 450, protein: 4, carbs: 58, fat: 22 },
-    extras: [
-      { name: "Bola extra de sorvete de Caxinde", price: 2000.00 }
-    ],
-    sauces: ["Caramelo de coco e baunilha", "Coulis de maracujá selvagem"]
-  },
-  {
-    id: "b1",
-    name: "Cocktail Kissangua Imperial",
-    description: "Versão refinada e premium da bebida tradicional à base de milho germinado, infusionada com xarope de hibisco (loengo), rum angolano e hortelã fresca.",
-    price: 6500.00,
-    category: "bebidas",
-    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&auto=format&fit=crop&q=80",
-    ingredients: ["Kissangua de milho", "Rum angolano", "Xarope de hibisco", "Hortelã", "Gelado de limão"],
-    averageTime: 5,
-    tags: ["Novo"],
-    nutritionalValue: { calories: 190, protein: 1, carbs: 18, fat: 0 },
-    extras: [
-      { name: "Dose extra de Rum Angolano", price: 3000.00 }
-    ],
-    sauces: ["Xarope de hibisco artesanal"]
-  }
-];
+let menuItems: any[] = [...seedMenu];
 
 let orders: any[] = [
   {

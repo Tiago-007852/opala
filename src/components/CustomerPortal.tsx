@@ -1,3 +1,11 @@
+import { formatKz } from "../utils/format";
+import DishPhoto from "./DishPhoto";
+import MenuCard from "./MenuCard";
+import DrinksMenu from "./DrinksMenu";
+import Ornament from "./Ornament";
+import { categories } from "../data/categories";
+import { getCategoryCover } from "../utils/photos";
+import { restaurant, whatsappLink, welcomeParagraphs, farewellParagraphs } from "../data/restaurant";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
@@ -22,7 +30,10 @@ import {
   AlertCircle,
   HelpCircle,
   TrendingUp,
-  Award
+  Award,
+  MessageCircle,
+  Wine,
+  UtensilsCrossed
 } from "lucide-react";
 import { MenuItem, CartItem, Order, Table, Booking } from "../types";
 
@@ -241,7 +252,7 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
   });
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-[#F2F2F2] font-sans selection:bg-gold selection:text-black relative overflow-hidden">
+    <div className="min-h-screen bg-[#0A0A0A] text-[#F2F2F2] font-sans selection:bg-gold selection:text-black relative overflow-x-clip">
       
       {/* Sleek Theme Ambient Glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
@@ -259,13 +270,18 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
 
       {/* Header / Nav */}
       <header className="sticky top-0 z-40 bg-[#0A0A0A]/85 backdrop-blur-md border-b border-white/5 py-4 px-6 md:px-12 flex justify-between items-center transition-all">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 border border-gold flex items-center justify-center rotate-45 shrink-0">
-            <span className="-rotate-45 text-lg font-serif font-bold text-gold">O</span>
-          </div>
-          <span className="text-xl font-serif tracking-[0.2em] ml-1 text-white">OPALA</span>
-          <span className="text-[9px] uppercase tracking-widest text-gold bg-gold/10 border border-gold/20 px-2 py-0.5 rounded-full hidden sm:inline ml-2">Premium</span>
-        </div>
+        <button
+          id="header-logo"
+          onClick={() => setActiveTab('home')}
+          aria-label="Opala, Lda — início"
+          className="shrink-0 w-[58px] md:w-[92px] h-10"
+        >
+          <img
+            src="/img/logo.png"
+            alt="Opala, Lda"
+            className="absolute top-0 left-6 md:left-12 h-[68px] md:h-[112px] w-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.55)]"
+          />
+        </button>
 
         <nav className="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em] font-medium text-white/60">
           <button 
@@ -290,18 +306,11 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
             RESERVAS
           </button>
           <button 
-            id="nav-gallery"
-            onClick={() => setActiveTab('gallery')} 
-            className={`hover:text-white transition-colors py-1 relative ${activeTab === 'gallery' ? 'text-white border-b border-gold' : ''}`}
-          >
-            AMBIENTE
-          </button>
-          <button 
             id="nav-about"
             onClick={() => setActiveTab('about')} 
             className={`hover:text-white transition-colors py-1 relative ${activeTab === 'about' ? 'text-white border-b border-gold' : ''}`}
           >
-            HISTÓRIA
+            A NOSSA CASA
           </button>
         </nav>
 
@@ -332,153 +341,177 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
         </div>
       </header>
 
+      {/* Mobile navigation (o menu do topo só aparece em ecrãs grandes) */}
+      <nav className="md:hidden sticky top-[73px] z-30 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-white/5 flex gap-2 overflow-x-auto px-4 py-2.5 text-[10px] uppercase tracking-widest font-bold">
+        {([
+          { id: 'home', label: 'Início' },
+          { id: 'menu', label: 'Cardápio' },
+          { id: 'booking', label: 'Reservas' },
+          { id: 'about', label: 'A Nossa Casa' }
+        ] as const).map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`px-4 py-2 rounded-full whitespace-nowrap border transition-all ${
+              activeTab === t.id ? 'bg-gold text-black border-gold' : 'bg-white/5 text-white/60 border-white/5'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
       {/* Main Content Areas */}
       <main className="pb-24">
         
         {/* TAB: HOME */}
         {activeTab === 'home' && (
           <div id="tab-home">
-            {/* Hero Section */}
-            <section className="relative min-h-[90vh] flex flex-col justify-center items-center px-6 text-center overflow-hidden">
-              {/* Luxury Ambient Video/Image Background */}
-              <div className="absolute inset-0 z-0">
-                <img 
-                  src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1600&auto=format&fit=crop&q=80" 
-                  alt="Opala Restaurante" 
-                  className="w-full h-full object-cover opacity-30 scale-105 filter brightness-75"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/80" />
-              </div>
-
-              {/* Foreground content with entry animation */}
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-                className="relative z-10 max-w-4xl flex flex-col items-center"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-[1px] w-12 bg-gold"></div>
-                  <span className="text-gold text-xs uppercase tracking-[0.4em] font-bold">Cozinha de Autor</span>
-                  <div className="h-[1px] w-12 bg-gold"></div>
-                </div>
-
-                <h1 className="text-5xl md:text-7xl font-serif leading-[1.1] mb-6 text-white">
-                  Gastronomia em <br/><span className="italic text-gold font-serif">Estado de Arte</span>
-                </h1>
-                
-                <p className="text-base md:text-xl font-light text-white/60 tracking-wide max-w-2xl mb-12 leading-relaxed">
-                  Uma jornada sensorial extraordinária, onde a tradição brasileira encontra a sofisticação internacional. Cada prato é uma joia lapidada para o seu paladar.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full max-w-md justify-center mb-16">
-                  <button 
-                    id="hero-menu"
-                    onClick={() => setActiveTab('menu')}
-                    className="flex-1 bg-gold hover:bg-gold-hover text-black font-bold py-4 px-8 rounded-full transition-all tracking-widest text-[11px] uppercase flex items-center justify-center gap-2 shadow-lg shadow-gold/20"
-                  >
-                    Ver Cardápio
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                  <button 
-                    id="hero-booking"
-                    onClick={() => setActiveTab('booking')}
-                    className="flex-1 bg-white/5 backdrop-blur-md text-white border border-white/10 hover:border-white/20 hover:bg-white/10 font-bold py-4 px-8 rounded-full transition-all tracking-widest text-[11px] uppercase"
-                  >
-                    Fazer Reserva
-                  </button>
-                </div>
-
-                {/* Stars feedback */}
-                <div className="border-t border-white/10 pt-8 w-full max-w-lg">
-                  <div className="text-gold text-sm tracking-wider mb-2">★★★★★</div>
-                  <p className="text-[10px] tracking-widest text-white/50 uppercase">Mais de 5.000 clientes satisfeitos e fidelizados</p>
-                </div>
-              </motion.div>
-            </section>
-
-            {/* Featured Section */}
-            <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto">
-              <div className="grid md:grid-cols-2 gap-16 items-center">
-                <div className="space-y-6">
-                  <span className="text-gold text-xs uppercase tracking-[0.3em] font-semibold">Inigualável</span>
-                  <h2 className="text-3xl md:text-5xl font-serif tracking-wide leading-tight">Onde a Tradição Encontra a Modernidade</h2>
-                  <p className="text-white/50 leading-relaxed font-light text-base">
-                    Localizado no coração da metrópole, o Restaurante Opala redefine a experiência culinária contemporânea. Nossos chefs de renome mundial selecionam meticulosamente insumos frescos e raros para criar pratos surpreendentes que unem técnicas clássicas e inovação molecular.
+            {/* Hero */}
+            <section className="relative overflow-hidden">
+              <div className="absolute inset-0 z-0 opacity-60" style={{ backgroundImage: "url('/img/fundo-icones.jpg')", backgroundSize: '420px' }} />
+              <div className="absolute inset-0 z-0 bg-gradient-to-b from-black/30 via-transparent to-[#0A0A0A]" />
+              <div className="relative z-10 max-w-6xl mx-auto px-6 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                  className="space-y-6 text-center md:text-left"
+                >
+                  <h1 className="text-5xl md:text-7xl leading-[1.1] text-white" style={{ fontFamily: "'Dancing Script', cursive" }}>
+                    Seja bem-vindo <span className="text-gold">à nossa casa!</span>
+                  </h1>
+                  <p className="text-base md:text-lg font-light text-white/70 max-w-lg mx-auto md:mx-0 leading-relaxed">
+                    Sente-se, relaxe, escolha com calma e permita-se desfrutar. Faça o seu pedido e desfrute!
                   </p>
-                  <div className="grid grid-cols-2 gap-6 pt-6">
-                    <div className="border-l border-gold/40 pl-4">
-                      <h4 className="text-2xl font-serif text-white">100%</h4>
-                      <p className="text-[10px] text-white/50 uppercase tracking-widest">Insumos Orgânicos e Frescos</p>
-                    </div>
-                    <div className="border-l border-gold/40 pl-4">
-                      <h4 className="text-2xl font-serif text-white">Michelin</h4>
-                      <p className="text-[10px] text-white/50 uppercase tracking-widest">Padrão de Serviço Internacional</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="relative h-[450px] rounded-2xl overflow-hidden border border-white/10 group">
-                  <img 
-                    src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&auto=format&fit=crop&q=80" 
-                    alt="Prato do Chef" 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-                  <div className="absolute bottom-6 left-6 right-6 p-6 bg-black/60 backdrop-blur-md rounded-xl border border-white/10">
-                    <span className="text-gold text-xs uppercase tracking-widest block mb-2 font-bold">Destaque de Hoje</span>
-                    <h4 className="text-xl font-serif">Lagosta Cavaquinha na Manteiga de Sálvia</h4>
-                    <button 
-                      onClick={() => { setActiveTab('menu'); setSelectedCategory('massas'); }}
-                      className="text-xs text-gold mt-2 flex items-center gap-1 hover:underline"
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <button
+                      id="hero-menu"
+                      onClick={() => setActiveTab('menu')}
+                      className="bg-gold hover:bg-gold-hover text-black font-bold py-4 px-8 rounded-full transition-all tracking-widest text-[11px] uppercase flex items-center justify-center gap-2 shadow-lg shadow-gold/20"
                     >
-                      Pedir este prato <ArrowRight className="w-3.5 h-3.5" />
+                      Ver Cardápio
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </button>
+                    <a
+                      id="hero-whatsapp"
+                      href={whatsappLink()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white/5 backdrop-blur-md text-white border border-white/10 hover:border-gold/40 hover:bg-white/10 font-bold py-4 px-8 rounded-full transition-all tracking-widest text-[11px] uppercase flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-4 h-4 text-gold" />
+                      Pedir no WhatsApp
+                    </a>
                   </div>
-                </div>
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.15 }}
+                  className="hidden md:block"
+                >
+                  <img
+                    src="/img/capa.jpg"
+                    alt="Menú Opala"
+                    className="w-full max-w-sm mx-auto rounded-2xl border border-gold/30 shadow-2xl shadow-black/60"
+                  />
+                </motion.div>
               </div>
             </section>
 
-            {/* Testimonials Carousel */}
-            <section className="bg-gradient-to-b from-black to-[#0A0A0A] py-24 px-6 border-y border-white/5">
-              <div className="max-w-4xl mx-auto text-center">
-                <span className="text-gold text-xs tracking-widest uppercase font-semibold block mb-4">Depoimentos</span>
-                <h3 className="text-3xl md:text-4xl font-serif tracking-wide mb-16">A Experiência de Quem nos Visita</h3>
-                
-                {/* Simulated slider */}
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden">
-                  <div className="text-gold text-2xl mb-6">★★★★★</div>
-                  <p className="text-lg md:text-xl text-white/80 italic font-serif font-light mb-8 leading-relaxed">
-                    "O Opala não é apenas uma refeição, é um espetáculo. O atendimento do Gustavo foi impecável, as Vieiras com Trufas derretem na boca e a atmosfera do lugar nos transporta para Paris ou Milão. Voltaremos com certeza."
+            {/* Categorias */}
+            <section className="py-16 px-6 max-w-6xl mx-auto">
+              <div className="text-center mb-10">
+                <span className="text-gold text-xs uppercase tracking-[0.3em] font-semibold block mb-2">O nosso cardápio</span>
+                <h2 className="text-3xl md:text-4xl font-serif tracking-wide">O que vai apetecer hoje?</h2>
+                <Ornament className="mt-5" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                {categories.map(cat => {
+                  const cover = getCategoryCover(cat.id);
+                  const count = state.menuItems.filter(i => i.category === cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => { setActiveTab('menu'); setSelectedCategory(cat.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      className="group relative overflow-hidden h-40 rounded-3xl border border-white/10 hover:border-gold/60 bg-[#141414] text-left transition-all shadow-[0_12px_40px_-18px_rgba(0,0,0,0.9)]"
+                    >
+                      {cover ? (
+                        <img
+                          src={cover}
+                          alt=""
+                          loading="lazy"
+                          className="absolute -right-8 top-1/2 -translate-y-1/2 h-[150%] w-auto max-w-none transition-transform duration-700 group-hover:scale-110 group-hover:-rotate-3"
+                          style={{ WebkitMaskImage: 'radial-gradient(circle at center, #000 52%, transparent 70%)', maskImage: 'radial-gradient(circle at center, #000 52%, transparent 70%)' }}
+                        />
+                      ) : (
+                        <div className="absolute right-6 top-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-gold/30 flex items-center justify-center text-gold/70">
+                          {cat.id === 'bebidas' ? <Wine className="w-10 h-10" strokeWidth={1.2} /> : <UtensilsCrossed className="w-10 h-10" strokeWidth={1.2} />}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-r from-[#141414] via-[#141414]/75 to-transparent" />
+                      <div className="relative h-full p-6 flex flex-col justify-end">
+                        <span className="block text-2xl font-serif text-white group-hover:text-gold transition-colors leading-tight max-w-[60%]">{cat.label}</span>
+                        <span className="text-[10px] uppercase tracking-widest text-white/50 flex items-center gap-1 mt-2">
+                          {count} opções <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Mensagem de boas-vindas */}
+            <section className="py-20 px-6 border-y border-white/5 bg-gradient-to-b from-black to-[#0A0A0A]">
+              <div className="max-w-3xl mx-auto text-center space-y-6">
+                <h3 className="text-4xl md:text-5xl text-gold" style={{ fontFamily: "'Dancing Script', cursive" }}>Seja bem-vindo à nossa casa!</h3>
+                {welcomeParagraphs.map((p, i) => (
+                  <p key={i} className="text-lg md:text-xl text-white/80 font-serif font-light leading-relaxed">{p}</p>
+                ))}
+                <p className="text-3xl text-white pt-2" style={{ fontFamily: "'Dancing Script', cursive" }}>Bom apetite!</p>
+              </div>
+            </section>
+
+            {/* Contactos */}
+            <section className="py-20 px-6 max-w-5xl mx-auto">
+              <div className="text-center mb-10">
+                <span className="text-gold text-xs uppercase tracking-[0.3em] font-semibold block mb-2">{restaurant.socialName}</span>
+                <h2 className="text-3xl md:text-4xl font-serif tracking-wide">Faça o seu pedido e desfrute!</h2>
+              </div>
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-white/5 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-3">
+                  <Phone className="w-6 h-6 text-gold" />
+                  <h4 className="text-lg font-serif text-white">Ligue-nos</h4>
+                  <p className="text-white/70 text-sm font-light leading-relaxed">
+                    {restaurant.phones.map(ph => (
+                      <a key={ph} href={`tel:${ph.replace(/\s/g, '')}`} className="block hover:text-gold transition-colors">{ph}</a>
+                    ))}
                   </p>
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden border border-gold/30">
-                      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" alt="Cliente" />
-                    </div>
-                    <div className="text-left">
-                      <h5 className="font-semibold text-white">Dr. Rodolfo Bento</h5>
-                      <span className="text-[10px] text-white/40 uppercase tracking-widest">Advogado e Colecionador</span>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            </section>
-
-            {/* Quick Contact & Map info */}
-            <section className="py-24 px-6 max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-              <div className="bg-white/5 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-4">
-                <MapPin className="w-6 h-6 text-gold" />
-                <h4 className="text-lg font-serif text-white">Localização</h4>
-                <p className="text-white/60 text-sm font-light">Ilha de Luanda, Luanda, Angola</p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-4">
-                <Clock className="w-6 h-6 text-gold" />
-                <h4 className="text-lg font-serif text-white">Horário de Funcionamento</h4>
-                <p className="text-white/60 text-sm font-light leading-relaxed">Terça a Sábado: 19:00h às 00:00h<br />Domingo: 12:00h às 16:30h</p>
-              </div>
-              <div className="bg-white/5 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-4">
-                <Phone className="w-6 h-6 text-gold" />
-                <h4 className="text-lg font-serif text-white">Reservas & Contato</h4>
-                <p className="text-white/60 text-sm font-light leading-relaxed">Tel: +244 222 300 840<br />WhatsApp: +244 923 888 888</p>
+                <div className="bg-white/5 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-3">
+                  <MessageCircle className="w-6 h-6 text-gold" />
+                  <h4 className="text-lg font-serif text-white">WhatsApp</h4>
+                  <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="text-gold text-sm hover:underline block">
+                    Enviar mensagem
+                  </a>
+                </div>
+                {restaurant.address && (
+                  <div className="bg-white/5 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-3">
+                    <MapPin className="w-6 h-6 text-gold" />
+                    <h4 className="text-lg font-serif text-white">Localização</h4>
+                    <p className="text-white/70 text-sm font-light">{restaurant.address}</p>
+                  </div>
+                )}
+                {restaurant.hours && (
+                  <div className="bg-white/5 backdrop-blur-md p-8 rounded-2xl border border-white/10 space-y-3">
+                    <Clock className="w-6 h-6 text-gold" />
+                    <h4 className="text-lg font-serif text-white">Horário</h4>
+                    <p className="text-white/70 text-sm font-light">{restaurant.hours}</p>
+                  </div>
+                )}
               </div>
             </section>
           </div>
@@ -489,22 +522,25 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
           <div id="tab-menu" className="px-6 md:px-12 max-w-7xl mx-auto pt-12 relative z-10">
             
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="text-gold text-xs uppercase tracking-[0.3em] font-semibold block mb-3">Menu Gastronômico</span>
-              <h2 className="text-4xl md:text-5xl font-serif tracking-wide mb-4">Escolha com Calma e Sofisticação</h2>
+              <span className="text-gold text-xs uppercase tracking-[0.3em] font-semibold block mb-3">Restaurante Opala</span>
+              <h2 className="text-6xl md:text-7xl text-white mb-4 leading-none" style={{ fontFamily: "'Dancing Script', cursive" }}>Cardápio</h2>
+              <Ornament className="mb-5" />
               <p className="text-white/50 font-light text-sm leading-relaxed">
-                Toque nos pratos para abrir a ficha completa de ingredientes, valores nutricionais e personalizar seus molhos e acompanhamentos.
+                Toque nos pratos para ver os detalhes e fazer o seu pedido.
               </p>
             </div>
 
             {/* Categories scrollbar */}
-            <div className="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-thin scrollbar-thumb-zinc-800 border-b border-white/5">
+            <div className="flex gap-2 overflow-x-auto pb-4 mb-10 scrollbar-thin scrollbar-thumb-zinc-800 border-b border-white/5">
               {[
                 { id: 'todos', label: 'Todos' },
+                { id: 'pequeno-almoco', label: 'Pequeno-Almoço' },
                 { id: 'entradas', label: 'Entradas' },
-                { id: 'principais', label: 'Pratos Principais' },
+                { id: 'petiscos', label: 'Petiscos' },
+                { id: 'carnes', label: 'Pratos de Carne' },
+                { id: 'peixes', label: 'Pratos de Peixe' },
                 { id: 'massas', label: 'Massas' },
-                { id: 'carnes', label: 'Carnes' },
-                { id: 'peixes', label: 'Peixes' },
+                { id: 'fastfood', label: 'Fast-Food' },
                 { id: 'sobremesas', label: 'Sobremesas' },
                 { id: 'bebidas', label: 'Bebidas' }
               ].map(cat => (
@@ -524,6 +560,7 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
             </div>
 
             {/* Tags / Badges selector */}
+            {state.menuItems.some(i => i.tags.length > 0) && (
             <div className="flex flex-wrap gap-2 mb-12">
               {[
                 { id: 'todos', label: 'Todos os Estilos' },
@@ -547,66 +584,42 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
                 </button>
               ))}
             </div>
+            )}
 
             {/* Menu Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => <MenuSkeleton key={i} />)
-              ) : (
-                filteredItems.map(item => (
-                  <motion.div 
-                    id={`menu-item-card-${item.id}`}
-                    key={item.id}
-                    onClick={() => setSelectedProduct(item)}
-                    whileHover={{ y: -6 }}
-                    className="bg-white/5 backdrop-blur-md border border-white/5 rounded-3xl overflow-hidden cursor-pointer hover:border-gold/30 transition-all flex flex-col justify-between group"
-                  >
-                    <div>
-                      {/* Image */}
-                      <div className="h-56 overflow-hidden relative">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <div className="absolute top-4 left-4 flex gap-1.5 flex-wrap">
-                          {item.tags.map(tag => (
-                            <span key={tag} className="bg-gold text-black font-extrabold text-[9px] uppercase tracking-widest px-3 py-1 rounded-full">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
+            {isLoading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {Array.from({ length: 6 }).map((_, i) => <MenuSkeleton key={i} />)}
+              </div>
+            ) : selectedCategory === 'todos' ? (
+              <div className="space-y-20">
+                {categories.map(cat => {
+                  const items = filteredItems.filter(i => i.category === cat.id);
+                  if (items.length === 0) return null;
+                  return (
+                    <section key={cat.id} id={`secao-${cat.id}`}>
+                      <div className="text-center mb-10">
+                        <h3 className="text-4xl md:text-5xl text-gold" style={{ fontFamily: "'Dancing Script', cursive" }}>{cat.label}</h3>
+                        <Ornament className="mt-3" />
                       </div>
-
-                      {/* Meta */}
-                      <div className="p-6 space-y-3">
-                        <div className="flex justify-between items-start gap-4">
-                          <h3 className="text-lg font-serif group-hover:text-gold transition-colors">{item.name}</h3>
-                          <span className="text-gold font-serif font-medium whitespace-nowrap">Kz {item.price.toFixed(2)}</span>
+                      {cat.id === 'bebidas' ? (
+                        <DrinksMenu items={items} onOpen={setSelectedProduct} />
+                      ) : (
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                          {items.map(item => <MenuCard key={item.id} item={item} onOpen={setSelectedProduct} />)}
                         </div>
-                        <p className="text-sm text-white/50 font-light line-clamp-2 leading-relaxed">
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="px-6 pb-6 pt-2 flex justify-between items-center border-t border-white/5">
-                      <span className="text-[9px] uppercase tracking-wider text-white/40">Preparo: {item.averageTime} min</span>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedProduct(item);
-                        }}
-                        className="text-[10px] text-gold font-bold tracking-widest uppercase flex items-center gap-1 hover:text-white"
-                      >
-                        Pedir Prato <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </div>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            ) : selectedCategory === 'bebidas' ? (
+              <DrinksMenu items={filteredItems} onOpen={setSelectedProduct} />
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredItems.map(item => <MenuCard key={item.id} item={item} onOpen={setSelectedProduct} />)}
+              </div>
+            )}
           </div>
         )}
 
@@ -786,49 +799,21 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
 
         {/* TAB: ABOUT */}
         {activeTab === 'about' && (
-          <div id="tab-about" className="px-6 md:px-12 max-w-5xl mx-auto pt-12 space-y-16 relative z-10">
-            <div className="text-center max-w-2xl mx-auto">
-              <span className="text-gold text-xs uppercase tracking-[0.3em] font-semibold block mb-3">Nossa Origem</span>
-              <h2 className="text-4xl md:text-5xl font-serif tracking-wide mb-4">A Lenda de Opala</h2>
+          <div id="tab-about" className="relative z-10">
+            <div className="absolute inset-0 -z-10 opacity-50" style={{ backgroundImage: "url('/img/fundo-icones.jpg')", backgroundSize: '420px' }} />
+            <div className="px-6 md:px-12 max-w-3xl mx-auto pt-16 pb-8 text-center space-y-6">
+              <img src="/img/logo.png" alt="Opala, Lda" className="h-20 mx-auto" />
+              <h2 className="text-4xl md:text-5xl text-gold" style={{ fontFamily: "'Dancing Script', cursive" }}>Seja bem-vindo à nossa casa!</h2>
+              {welcomeParagraphs.map((p, i) => (
+                <p key={i} className="text-lg text-white/80 font-serif font-light leading-relaxed">{p}</p>
+              ))}
+              <p className="text-3xl text-white" style={{ fontFamily: "'Dancing Script', cursive" }}>Bom apetite!</p>
             </div>
-
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="space-y-6 text-white/70 leading-relaxed font-light text-base">
-                <p>
-                  Fundado pelo conceituado sommelier e colecionador de gemas preciosas Eduardo Ndalu, o restaurante nasceu sob a premissa de que a culinária é uma gema em estado bruto, que atinge sua plenitude somente através da lapidação do tempo e da técnica impecável.
-                </p>
-                <p>
-                  Batizado com o nome da pedra "Opala" — célebre por sua capacidade única de refletir um arco-íris de cores sob diferentes espectros de luz —, nosso cardápio busca esse mesmo efeito: refletir múltiplos horizontes de sabores a cada garfada.
-                </p>
-              </div>
-              <div className="h-96 rounded-3xl overflow-hidden border border-white/10">
-                <img 
-                  src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=800&auto=format&fit=crop&q=80" 
-                  alt="Eduardo Ndalu Chef" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8 pt-12 border-t border-white/5">
-              <div className="space-y-3 bg-white/5 border border-white/5 p-6 rounded-2xl">
-                <h4 className="text-lg font-serif text-gold">Missão</h4>
-                <p className="text-sm text-white/50 leading-relaxed font-light">
-                  Lapidar ingredientes frescos em experiências gastronômicas exclusivas, gerando memórias memoráveis de elegância e sofisticação culinária.
-                </p>
-              </div>
-              <div className="space-y-3 bg-white/5 border border-white/5 p-6 rounded-2xl">
-                <h4 className="text-lg font-serif text-gold">Visão</h4>
-                <p className="text-sm text-white/50 leading-relaxed font-light">
-                  Ser reconhecido como o epicentro da vanguarda culinária em Angola, unindo hospitalidade impecável a criações autorais refinadas.
-                </p>
-              </div>
-              <div className="space-y-3 bg-white/5 border border-white/5 p-6 rounded-2xl">
-                <h4 className="text-lg font-serif text-gold">Valores</h4>
-                <p className="text-sm text-white/50 leading-relaxed font-light">
-                  Excelência absoluta em serviço, sustentabilidade na seleção orgânica de pequenos produtores rurais, e criatividade incessante na inovação.
-                </p>
-              </div>
+            <div className="px-6 md:px-12 max-w-3xl mx-auto py-16 text-center space-y-6 border-t border-white/10">
+              {farewellParagraphs.map((p, i) => (
+                <p key={i} className="text-lg text-white/80 font-serif font-light leading-relaxed">{p}</p>
+              ))}
+              <p className="text-3xl text-gold" style={{ fontFamily: "'Dancing Script', cursive" }}>Até breve!</p>
             </div>
           </div>
         )}
@@ -836,55 +821,56 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-black/80 border-t border-white/5 py-16 px-6 md:px-12 text-white/40 relative z-10">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
+      <footer className="bg-black/80 border-t border-white/5 py-14 px-6 md:px-12 text-white/40 relative z-10">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-10 mb-10">
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 border border-gold flex items-center justify-center rotate-45 shrink-0">
-                <span className="-rotate-45 text-sm font-serif font-bold text-gold">O</span>
-              </div>
-              <span className="text-lg font-serif tracking-[0.2em] ml-1 text-white">OPALA</span>
-            </div>
+            <img src="/img/logo.png" alt="Opala, Lda" className="h-20" />
             <p className="text-xs text-white/50 leading-relaxed font-light">
-              Uma nova dimensão culinária. Experiência refinada com pedido direto da mesa e acompanhamento real-time.
+              Faça o seu pedido e desfrute!
             </p>
-            <div className="flex gap-4 pt-2">
-              <a href="#" className="hover:text-white transition-colors"><Instagram className="w-4 h-4" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Facebook className="w-4 h-4" /></a>
-              <a href="#" className="hover:text-white transition-colors"><Phone className="w-4 h-4" /></a>
+            <div className="flex items-center gap-4 pt-1 text-white/60">
+              {restaurant.instagramUrl && <a href={restaurant.instagramUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Instagram className="w-4 h-4" /></a>}
+              {restaurant.facebookUrl && <a href={restaurant.facebookUrl} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><Facebook className="w-4 h-4" /></a>}
+              <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors"><MessageCircle className="w-4 h-4" /></a>
+              <span className="text-xs uppercase tracking-widest">{restaurant.socialName}</span>
             </div>
           </div>
 
           <div className="space-y-3">
             <h5 className="text-white text-xs font-semibold uppercase tracking-widest">Acesso Rápido</h5>
             <ul className="space-y-2 text-sm font-light">
-              <li><button onClick={() => setActiveTab('home')} className="hover:text-white transition-colors">Home</button></li>
+              <li><button onClick={() => setActiveTab('home')} className="hover:text-white transition-colors">Início</button></li>
               <li><button onClick={() => setActiveTab('menu')} className="hover:text-white transition-colors">Cardápio Digital</button></li>
               <li><button onClick={() => setActiveTab('booking')} className="hover:text-white transition-colors">Reservas</button></li>
-              <li><button onClick={() => setActiveTab('gallery')} className="hover:text-white transition-colors">Ambiente</button></li>
+              <li><button onClick={() => setActiveTab('about')} className="hover:text-white transition-colors">A Nossa Casa</button></li>
             </ul>
           </div>
 
           <div className="space-y-3">
-            <h5 className="text-white text-xs font-semibold uppercase tracking-widest">Políticas</h5>
-            <ul className="space-y-2 text-sm font-light">
-              <li><a href="#" className="hover:text-white transition-colors">Política de Privacidade</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Segurança Digital</a></li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h5 className="text-white text-xs font-semibold uppercase tracking-widest">Contato Imediato</h5>
-            <p className="text-sm font-light text-white/60">reservas@opalaristorante.com</p>
-            <p className="text-sm font-light text-white/60">+244 923 888 888</p>
+            <h5 className="text-white text-xs font-semibold uppercase tracking-widest">Contacto</h5>
+            {restaurant.phones.map(ph => (
+              <a key={ph} href={`tel:${ph.replace(/\s/g, '')}`} className="block text-sm font-light text-white/60 hover:text-white transition-colors">{ph}</a>
+            ))}
+            {restaurant.address && <p className="text-sm font-light text-white/60">{restaurant.address}</p>}
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto border-t border-white/5 pt-8 text-center text-xs font-light">
-          &copy; {new Date().getFullYear()} Opala Ristorante S.A. Todos os direitos reservados.
+        <div className="max-w-6xl mx-auto border-t border-white/5 pt-8 text-center text-xs font-light">
+          &copy; {new Date().getFullYear()} {restaurant.legalName}. Todos os direitos reservados.
         </div>
       </footer>
+
+      {/* Botão flutuante de WhatsApp */}
+      <a
+        id="floating-whatsapp"
+        href={whatsappLink()}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Falar no WhatsApp"
+        className="fixed bottom-5 right-5 z-30 bg-[#25D366] hover:bg-[#1ebe5b] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-black/50 transition-all hover:scale-105"
+      >
+        <MessageCircle className="w-7 h-7" />
+      </a>
 
       {/* MODAL: PRODUCT DETAIL PAGE */}
       <AnimatePresence>
@@ -900,11 +886,7 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
             >
               {/* Left Column: Media */}
               <div className="relative h-64 md:h-full min-h-[300px]">
-                <img 
-                  src={selectedProduct.image} 
-                  alt={selectedProduct.name} 
-                  className="w-full h-full object-cover"
-                />
+                <DishPhoto item={selectedProduct} className="w-full h-full" showLabel iconSize="w-16 h-16" />
                 <button 
                   id="close-product-modal"
                   onClick={() => setSelectedProduct(null)}
@@ -919,18 +901,21 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
                 <div className="space-y-4">
                   <div className="flex justify-between items-start gap-4">
                     <h2 className="text-2xl font-medium tracking-tight text-white">{selectedProduct.name}</h2>
-                    <span className="text-xl text-amber-500 font-semibold">Kz {selectedProduct.price.toFixed(2)}</span>
+                    <span className="text-xl text-amber-500 font-semibold whitespace-nowrap">Kz {formatKz(selectedProduct.price)}</span>
                   </div>
 
                   <p className="text-gray-400 text-sm leading-relaxed font-light">{selectedProduct.description}</p>
 
                   {/* Ingredients */}
+                  {selectedProduct.ingredients.length > 0 && (
                   <div className="space-y-1.5">
                     <span className="text-xs uppercase tracking-widest text-gray-500 font-bold block">Ingredientes principais</span>
                     <p className="text-xs text-gray-300 font-light">{selectedProduct.ingredients.join(" • ")}</p>
                   </div>
+                  )}
 
                   {/* Nutrition */}
+                  {selectedProduct.nutritionalValue && (
                   <div className="space-y-2">
                     <span className="text-xs uppercase tracking-widest text-gray-500 font-bold block">Tabela Nutricional (Aprox)</span>
                     <div className="grid grid-cols-4 gap-2 bg-zinc-900/40 border border-white/5 rounded-lg p-2.5 text-center text-[10px]">
@@ -952,6 +937,7 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
                       </div>
                     </div>
                   </div>
+                  )}
 
                   {/* Extras Selection */}
                   {selectedProduct.extras.length > 0 && (
@@ -978,7 +964,7 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
                               }`}
                             >
                               <span>{ex.name}</span>
-                              <span className="text-gold">+ Kz {ex.price.toFixed(2)}</span>
+                              <span className="text-gold">+ Kz {formatKz(ex.price)}</span>
                             </button>
                           );
                         })}
@@ -1117,19 +1103,15 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
                     const itemTotal = (item.menuItem.price + extrasSum) * item.quantity;
                     return (
                       <div key={index} className="flex gap-4 border-b border-white/5 pb-4">
-                        <img 
-                          src={item.menuItem.image} 
-                          alt={item.menuItem.name} 
-                          className="w-16 h-16 rounded-lg object-cover"
-                        />
+                        <DishPhoto item={item.menuItem} className="w-16 h-16 rounded-lg shrink-0" iconSize="w-6 h-6" />
                         <div className="flex-1 space-y-1">
                           <div className="flex justify-between items-start">
                             <h4 className="text-sm font-medium">{item.menuItem.name}</h4>
-                            <span className="text-sm text-amber-500 font-semibold">Kz {itemTotal.toFixed(2)}</span>
+                            <span className="text-sm text-amber-500 font-semibold">Kz {formatKz(itemTotal)}</span>
                           </div>
                           
                           <div className="text-[10px] text-gray-400 font-light space-y-0.5">
-                            <p>Qtd: {item.quantity} x Kz {item.menuItem.price.toFixed(2)}</p>
+                            <p>Qtd: {item.quantity} x Kz {formatKz(item.menuItem.price)}</p>
                             {item.selectedSauce && <p>Molho: {item.selectedSauce}</p>}
                             {item.selectedExtras.length > 0 && (
                               <p>Extras: {item.selectedExtras.map(e => `${e.name} (+Kz ${e.price})`).join(", ")}</p>
@@ -1221,21 +1203,21 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
                   <div className="space-y-2 border-t border-white/5 pt-4 text-xs">
                     <div className="flex justify-between text-white/50">
                       <span>Subtotal</span>
-                      <span>Kz {cartSubtotal.toFixed(2)}</span>
+                      <span>Kz {formatKz(cartSubtotal)}</span>
                     </div>
                     <div className="flex justify-between text-white/50">
                       <span>Taxa de serviço (10%)</span>
-                      <span>Kz {cartTax.toFixed(2)}</span>
+                      <span>Kz {formatKz(cartTax)}</span>
                     </div>
                     {cartDiscount > 0 && (
                       <div className="flex justify-between text-green-400">
                         <span>Desconto</span>
-                        <span>- Kz {cartDiscount.toFixed(2)}</span>
+                        <span>- Kz {formatKz(cartDiscount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-white font-semibold text-sm pt-2 border-t border-white/5">
                       <span>Total do Pedido</span>
-                      <span className="text-gold">Kz {cartTotal.toFixed(2)}</span>
+                      <span className="text-gold">Kz {formatKz(cartTotal)}</span>
                     </div>
                   </div>
 

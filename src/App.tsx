@@ -3,11 +3,21 @@ import { motion } from "motion/react";
 import { Sparkles, ArrowLeftRight } from "lucide-react";
 import CustomerPortal from "./components/CustomerPortal";
 import AdminPanel from "./components/AdminPanel";
+import { menuItems as seedMenu } from "./data/menu";
 import { MenuItem, Order, Table, Booking, Employee, InventoryItem, FinancialRecord, Customer } from "./types";
 
 export default function App() {
   // Navigation mode: customer facing portal vs restaurant admin dashboard
   const [viewMode, setViewMode] = useState<'customer' | 'admin'>('customer');
+
+  // O botão para o painel admin só aparece se o endereço terminar em #admin
+  // (ex.: https://opala-kappa.vercel.app/#admin). Clientes normais não o veem.
+  const [adminLink, setAdminLink] = useState<boolean>(window.location.hash === '#admin');
+  useEffect(() => {
+    const onHash = () => setAdminLink(window.location.hash === '#admin');
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   // Unified global state synced with the full-stack server
   const [globalState, setGlobalState] = useState<{
@@ -21,7 +31,7 @@ export default function App() {
     customers: Customer[];
     coupons: any[];
   }>({
-    menuItems: [],
+    menuItems: seedMenu, // cardápio oficial; funciona mesmo sem servidor (ex.: Vercel)
     orders: [],
     tables: [],
     bookings: [],
@@ -42,7 +52,7 @@ export default function App() {
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           const data = await res.json();
-          setGlobalState(data);
+          setGlobalState(prev => ({ ...prev, ...data, menuItems: data.menuItems?.length ? data.menuItems : prev.menuItems }));
         } else {
           console.warn("Received non-JSON response from /api/state. The server might be booting up or restarting.");
         }
@@ -211,6 +221,7 @@ export default function App() {
     <div className="relative">
       
       {/* Floating View Switcher to toggle easily in the live demo */}
+      {(adminLink || viewMode === 'admin') && (
       <div className="fixed bottom-6 left-6 z-50">
         <button 
           id="btn-toggle-view"
@@ -221,6 +232,7 @@ export default function App() {
           <span>Alternar para {viewMode === 'customer' ? 'PAINEL SAAS (ADMIN)' : 'PORTAL CLIENTE'}</span>
         </button>
       </div>
+      )}
 
       <main>
         {viewMode === 'customer' ? (

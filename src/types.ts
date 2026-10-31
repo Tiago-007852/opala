@@ -3,12 +3,12 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
-  category: 'entradas' | 'principais' | 'massas' | 'carnes' | 'peixes' | 'sobremesas' | 'bebidas';
+  category: 'pequeno-almoco' | 'entradas' | 'petiscos' | 'principais' | 'massas' | 'carnes' | 'peixes' | 'fastfood' | 'sobremesas' | 'bebidas';
   image: string;
   ingredients: string[];
   averageTime: number; // in minutes
   tags: ('Novo' | 'Mais vendido' | 'Promoção' | 'Vegano' | 'Sem Glúten' | 'Picante')[];
-  nutritionalValue: {
+  nutritionalValue?: {
     calories: number;
     protein: number;
     carbs: number;
