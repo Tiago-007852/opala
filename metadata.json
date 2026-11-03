@@ -1,0 +1,6 @@
+{
+  "name": "Opala Ristorante",
+  "description": "Plataforma premium para o restaurante Opala. Cardápio digital com pedidos em tempo real, reservas automatizadas e controle administrativo completo.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
