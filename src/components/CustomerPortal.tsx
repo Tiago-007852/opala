@@ -33,9 +33,12 @@ import {
   Award,
   MessageCircle,
   Wine,
-  UtensilsCrossed
+  UtensilsCrossed,
+  UserRound,
+  LogOut,
+  ShieldCheck as ShieldIcon
 } from "lucide-react";
-import { MenuItem, CartItem, Order, Table, Booking } from "../types";
+import { MenuItem, CartItem, Order, Table, Booking, SiteAccount } from "../types";
 
 const MenuSkeleton = () => (
   <div className="bg-white/5 border border-white/5 rounded-3xl overflow-hidden flex flex-col justify-between h-[450px] animate-pulse">
@@ -78,9 +81,23 @@ interface CustomerPortalProps {
   isLoading?: boolean;
   onPlaceOrder: (orderData: any) => Promise<any>;
   onMakeBooking: (bookingData: any) => Promise<any>;
+  /** Conta autenticada (cliente ou administração). */
+  account?: SiteAccount | null;
+  onOpenAccount: (mode?: 'login' | 'register') => void;
+  onLogout: () => void;
+  onOpenAdminPanel: () => void;
 }
 
-export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeBooking }: CustomerPortalProps) {
+export default function CustomerPortal({
+  state,
+  isLoading,
+  onPlaceOrder,
+  onMakeBooking,
+  account = null,
+  onOpenAccount,
+  onLogout,
+  onOpenAdminPanel,
+}: CustomerPortalProps) {
   const [activeTab, setActiveTab] = useState<'home' | 'menu' | 'booking' | 'gallery' | 'about'>('home');
   const [selectedCategory, setSelectedCategory] = useState<string>('todos');
   const [selectedTag, setSelectedTag] = useState<string>('todos');
@@ -120,6 +137,18 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
     notes: ''
   });
   const [bookingSuccess, setBookingSuccess] = useState<boolean>(false);
+
+  // Conta autenticada → reservas e pedidos já com os dados da pessoa.
+  useEffect(() => {
+    if (!account) return;
+    setBookingForm((form) => ({
+      ...form,
+      name: form.name || account.name,
+      phone: form.phone || account.phone,
+      email: form.email || account.email,
+    }));
+    setCustomerName((current) => current || account.name);
+  }, [account]);
 
   // Parse table parameter from URL
   useEffect(() => {
@@ -229,10 +258,11 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
       setTimeout(() => {
         setBookingSuccess(false);
         setActiveTab('home');
+        // mantém os dados da conta para a próxima reserva
         setBookingForm({
-          name: '',
-          phone: '',
-          email: '',
+          name: account?.name ?? '',
+          phone: account?.phone ?? '',
+          email: account?.email ?? '',
           date: '',
           time: '',
           people: 2,
@@ -315,6 +345,45 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
         </nav>
 
         <div className="flex items-center gap-4">
+          {/* Conta do site: entrar / criar conta · ou painel, se for a administração */}
+          {account ? (
+            <div className="flex items-center gap-1.5">
+              {account.kind === 'admin' ? (
+                <button
+                  id="btn-open-admin"
+                  onClick={onOpenAdminPanel}
+                  className="bg-gold/10 border border-gold/40 text-gold text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full flex items-center gap-1.5 hover:bg-gold/20 transition-all font-semibold"
+                >
+                  <ShieldIcon className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Painel Admin</span>
+                </button>
+              ) : (
+                <span className="hidden lg:flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-white/60 px-2">
+                  <UserRound className="w-3.5 h-3.5 text-gold" />
+                  {account.name.split(' ')[0]}
+                </span>
+              )}
+              <button
+                id="btn-account-logout"
+                onClick={onLogout}
+                title="Sair da conta"
+                aria-label="Sair da conta"
+                className="bg-white/5 hover:bg-white/10 p-2.5 rounded-full border border-white/10 hover:border-white/20 transition-all text-white/60 hover:text-white flex items-center justify-center"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              id="btn-account"
+              onClick={() => onOpenAccount('login')}
+              className="bg-white/5 hover:bg-white/10 border border-white/10 hover:border-gold/40 text-white/80 hover:text-white text-[10px] uppercase tracking-wider px-3.5 py-2 rounded-full flex items-center gap-1.5 transition-all font-semibold"
+            >
+              <UserRound className="w-3.5 h-3.5 text-gold" />
+              <span className="hidden sm:inline">Entrar</span>
+            </button>
+          )}
+
           {activePlacedOrder && (
             <button 
               id="btn-track-order"
@@ -633,6 +702,26 @@ export default function CustomerPortal({ state, isLoading, onPlaceOrder, onMakeB
                 Planeje uma noite extraordinária de sabores no Restaurante Opala. A confirmação é instantânea e 100% automatizada.
               </p>
             </div>
+
+            {/* Conta: dados já preenchidos, ou convite para criar conta */}
+            {account ? (
+              <div className="mb-6 flex items-center gap-2 text-xs text-gold/90 bg-gold/5 border border-gold/20 rounded-2xl px-4 py-3">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>
+                  A reservar com a conta de <strong className="font-semibold">{account.name}</strong> — dados preenchidos automaticamente.
+                </span>
+              </div>
+            ) : (
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 text-xs text-white/60 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
+                <span>Crie conta e não volte a escrever os seus dados.</span>
+                <button
+                  onClick={() => onOpenAccount('register')}
+                  className="text-gold hover:underline font-semibold uppercase tracking-wider text-[10px]"
+                >
+                  Criar conta
+                </button>
+              </div>
+            )}
 
             {bookingSuccess ? (
               <motion.div 

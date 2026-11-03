@@ -124,10 +124,13 @@ export default function AdminPanel({
   onAddEmployee,
   onUpdateInventory
 }: AdminPanelProps) {
-  // Authentication
+  // Authentication — a sessão vive num cookie httpOnly emitido pelo servidor.
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [email, setEmail] = useState<string>('admin@opala.com');
-  const [password, setPassword] = useState<string>('admin123');
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
+  const [isSubmittingLogin, setIsSubmittingLogin] = useState<boolean>(false);
+  const [adminUser, setAdminUser] = useState<{ name: string; email: string; role: string } | null>(null);
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
 
   // Navigation
@@ -188,15 +191,67 @@ export default function AdminPanel({
   const [aiInput, setAiInput] = useState<string>('');
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
 
-  // Login handler
-  const handleLogin = (e: React.FormEvent) => {
+  // Retoma a sessão existente (cookie httpOnly) ao abrir o painel
+  useEffect(() => {
+    let active = true;
+    fetch('/api/auth/me')
+      .then(async (res) => {
+        if (!active || !res.ok) return;
+        const data = await res.json();
+        setAdminUser(data.admin);
+        setIsAuthenticated(true);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setIsCheckingSession(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Login handler — autentica no servidor e recebe o cookie de sessão
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'admin@opala.com' && password === 'admin123') {
-      setIsAuthenticated(true);
-      setAuthError('');
-    } else {
-      setAuthError('Credenciais incorretas. Use admin@opala.com / admin123');
+    setIsSubmittingLogin(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        setAdminUser(data.admin);
+        setPassword('');
+        setIsAuthenticated(true);
+      } else if (res.status === 423) {
+        const until = data.lockedUntil ? new Date(data.lockedUntil).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : null;
+        setAuthError(`${data.error ?? 'Conta bloqueada temporariamente.'}${until ? ` Nova tentativa possível às ${until}.` : ''}`);
+      } else if (res.status === 401 && typeof data.attemptsLeft === 'number') {
+        setAuthError(`${data.error ?? 'Credenciais inválidas.'} Tentativas restantes: ${data.attemptsLeft}.`);
+      } else {
+        setAuthError(data.error ?? 'Não foi possível iniciar sessão.');
+      }
+    } catch {
+      setAuthError('Servidor indisponível. Tente novamente.');
+    } finally {
+      setIsSubmittingLogin(false);
     }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // ignored — o cookie é limpo de qualquer forma no próximo login
+    }
+    setAdminUser(null);
+    setIsAuthenticated(false);
+    setEmail('');
+    setPassword('');
   };
 
   // Status updates
@@ -342,6 +397,14 @@ export default function AdminPanel({
 
   const profit = revenueToday - totalExpense;
 
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <p className="text-xs uppercase tracking-[0.3em] text-gold/70 animate-pulse">A verificar sessão…</p>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center p-6 selection:bg-gold selection:text-black">
@@ -396,9 +459,10 @@ export default function AdminPanel({
             <button 
               id="btn-login-submit"
               type="submit"
-              className="w-full bg-gold hover:bg-gold-hover text-black font-extrabold py-3.5 rounded-full transition-all tracking-widest text-[11px] uppercase shadow-lg shadow-gold/10"
+              disabled={isSubmittingLogin}
+              className="w-full bg-gold hover:bg-gold-hover disabled:opacity-50 disabled:cursor-not-allowed text-black font-extrabold py-3.5 rounded-full transition-all tracking-widest text-[11px] uppercase shadow-lg shadow-gold/10"
             >
-              Autenticar Acesso
+              {isSubmittingLogin ? 'A autenticar…' : 'Autenticar Acesso'}
             </button>
           </form>
 
@@ -471,13 +535,13 @@ export default function AdminPanel({
           <div className="flex items-center gap-3">
             <img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=100" alt="Admin user" className="w-10 h-10 rounded-full object-cover border border-white/10" />
             <div>
-              <h5 className="text-xs font-semibold">Suporte Opala</h5>
-              <span className="text-[10px] text-gray-500">tiagopw07@gmail.com</span>
+              <h5 className="text-xs font-semibold">{adminUser?.name ?? 'Sessão de administração'}</h5>
+              <span className="text-[10px] text-gray-500">{adminUser?.email ?? '—'}</span>
             </div>
           </div>
           <button 
             id="btn-logout"
-            onClick={() => setIsAuthenticated(false)}
+            onClick={handleLogout}
             className="w-full text-center text-xs text-red-400 hover:underline pt-2"
           >
             Sair do Painel
