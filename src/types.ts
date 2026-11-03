@@ -105,6 +105,17 @@ export interface Customer {
   loyaltyPoints: number;
 }
 
+/** Quem está autenticado no site: conta de cliente ou administração. */
+export interface SiteAccount {
+  kind: 'customer' | 'admin';
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  customerId?: string;
+  role?: string;
+}
+
 export interface Coupon {
   code: string;
   discount: number;

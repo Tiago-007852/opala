@@ -3,15 +3,26 @@ import { motion } from "motion/react";
 import { Sparkles, ArrowLeftRight } from "lucide-react";
 import CustomerPortal from "./components/CustomerPortal";
 import AdminPanel from "./components/AdminPanel";
+import AccountModal, { toSiteAccount, type AccountMode } from "./components/AccountModal";
 import { menuItems as seedMenu } from "./data/menu";
-import { MenuItem, Order, Table, Booking, Employee, InventoryItem, FinancialRecord, Customer } from "./types";
+import { MenuItem, Order, Table, Booking, Employee, InventoryItem, FinancialRecord, Customer, SiteAccount } from "./types";
 
 export default function App() {
   // Navigation mode: customer facing portal vs restaurant admin dashboard
   const [viewMode, setViewMode] = useState<'customer' | 'admin'>('customer');
 
-  // O botão para o painel admin só aparece se o endereço terminar em #admin
-  // (ex.: https://opala-kappa.vercel.app/#admin). Clientes normais não o veem.
+  // Conta autenticada no site (cliente) ou no painel (administração)
+  const [account, setAccount] = useState<SiteAccount | null>(null);
+  const [isAccountOpen, setIsAccountOpen] = useState<boolean>(false);
+  const [accountMode, setAccountMode] = useState<AccountMode>('login');
+  const isSiteAdmin = account?.kind === 'admin';
+
+  const openAccount = (mode: AccountMode = 'login') => {
+    setAccountMode(mode);
+    setIsAccountOpen(true);
+  };
+
+  // O painel abre pelo botão (só para a conta de administração) ou por #admin
   const [adminLink, setAdminLink] = useState<boolean>(window.location.hash === '#admin');
   useEffect(() => {
     const onHash = () => setAdminLink(window.location.hash === '#admin');
@@ -43,6 +54,46 @@ export default function App() {
   });
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Quem já está autenticado neste browser (sessão de cliente ou de admin)
+  const loadAccount = async () => {
+    try {
+      const res = await fetch("/api/customer/me", { headers: { Accept: "application/json" } });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.admin) {
+        setAccount(toSiteAccount({ kind: "admin", admin: data.admin }));
+      } else if (data.customer) {
+        setAccount(toSiteAccount({ kind: "customer", customer: data.customer }));
+      } else {
+        setAccount(null);
+      }
+    } catch (err) {
+      console.error("Error loading session:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadAccount();
+  }, []);
+
+  const handleAuthenticated = (next: SiteAccount) => {
+    setAccount(next);
+    if (next.kind === 'admin') {
+      setAdminLink(true);
+      setViewMode('admin');
+    }
+  };
+
+  const handleLogout = async () => {
+    await Promise.allSettled([
+      fetch("/api/customer/logout", { method: "POST" }),
+      fetch("/api/auth/logout", { method: "POST" }),
+    ]);
+    setAccount(null);
+    setViewMode('customer');
+    setAdminLink(window.location.hash === '#admin');
+  };
 
   // Sync state from server on mount & poll every 3 seconds for real-time order tracking
   const fetchState = async () => {
@@ -221,7 +272,7 @@ export default function App() {
     <div className="relative">
       
       {/* Floating View Switcher to toggle easily in the live demo */}
-      {(adminLink || viewMode === 'admin') && (
+      {(adminLink || isSiteAdmin || viewMode === 'admin') && (
       <div className="fixed bottom-6 left-6 z-50">
         <button 
           id="btn-toggle-view"
@@ -241,6 +292,10 @@ export default function App() {
             isLoading={isLoading}
             onPlaceOrder={handlePlaceOrder}
             onMakeBooking={handleMakeBooking}
+            account={account}
+            onOpenAccount={openAccount}
+            onLogout={handleLogout}
+            onOpenAdminPanel={() => setViewMode('admin')}
           />
         ) : (
           <AdminPanel 
@@ -256,6 +311,14 @@ export default function App() {
           />
         )}
       </main>
+
+      <AccountModal
+        open={isAccountOpen}
+        mode={accountMode}
+        onClose={() => setIsAccountOpen(false)}
+        onAuthenticated={handleAuthenticated}
+        onSwitchMode={setAccountMode}
+      />
 
     </div>
   );
