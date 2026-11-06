@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 import { menuItems as seedMenu } from "./src/data/menu";
@@ -30,6 +29,8 @@ import { attachCustomerSession, registerCustomerRoutes } from "./server/customer
 dotenv.config();
 
 const app = express();
+// Atrás do proxy do Vercel (e de qualquer proxy) os IPs vêm em x-forwarded-for.
+app.set("trust proxy", 1);
 app.use(express.json({ limit: "1mb" }));
 
 const PORT = Number(process.env.PORT ?? 3000);
@@ -562,6 +563,9 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 // Vite Middleware & Static Server Settings
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
+    // Import dinâmico: em produção/servless o `vite` (devDependency) não é
+    // carregado para dentro do pacote da função.
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -585,4 +589,13 @@ async function startServer() {
   });
 }
 
-startServer();
+/**
+ * A app Express é exportada para poder ser usada por uma função serverless
+ * (Vercel), onde não há `listen` nem ficheiros estáticos a servir.
+ */
+export default app;
+
+// No Vercel quem trata do HTTP é a função em api/index.ts.
+if (!process.env.VERCEL) {
+  startServer();
+}
