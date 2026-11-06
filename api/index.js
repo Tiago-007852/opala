@@ -52159,8 +52159,8 @@ __export(vercel_entry_exports, {
 module.exports = __toCommonJS(vercel_entry_exports);
 
 // server.ts
-var import_express = __toESM(require_express2(), 1);
-var import_path = __toESM(require("path"), 1);
+var import_express = __toESM(require_express2());
+var import_path = __toESM(require("path"));
 
 // node_modules/@google/genai/dist/node/index.mjs
 var import_p_retry = __toESM(require_p_retry(), 1);
@@ -73384,7 +73384,7 @@ function getApiKeyFromEnv() {
 }
 
 // server.ts
-var import_dotenv = __toESM(require_main(), 1);
+var import_dotenv = __toESM(require_main());
 
 // src/data/menu.ts
 var slug = (s2) => s2.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
