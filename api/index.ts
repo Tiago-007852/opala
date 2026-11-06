@@ -4,20 +4,39 @@
  * O `vercel.json` reescreve /api/* para aqui; a app Express é a mesma do
  * servidor local, mas sem `listen` e sem servir ficheiros estáticos (o Vercel
  * serve o `dist/` do Vite).
+ *
+ * A app é carregada com `import()` para que uma falha de arranque (módulo em
+ * falta, configuração inválida) apareça como JSON em vez de um 500 opaco.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import app from "../server";
 
 type Handler = (req: IncomingMessage, res: ServerResponse) => unknown;
 
-export default function handler(req: IncomingMessage, res: ServerResponse) {
-  // Normalmente o caminho chega intacto ("/api/customer/login"). Se algum dia
-  // chegar já reescrito ("/customer/login"), devolvemos o prefixo para as
-  // rotas do Express continuarem a casar.
+let appPromise: Promise<Handler> | null = null;
+
+function loadApp(): Promise<Handler> {
+  appPromise ??= import("../server").then((mod) => mod.default as Handler);
+  return appPromise;
+}
+
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  // Normalmente o caminho chega intacto ("/api/customer/login"). Se chegar já
+  // reescrito ("/customer/login"), devolvemos o prefixo para as rotas do
+  // Express continuarem a casar.
   const url = req.url ?? "/";
   if (!url.startsWith("/api")) {
     req.url = `/api${url.startsWith("/") ? url : `/${url}`}`;
   }
 
-  return (app as unknown as Handler)(req, res);
+  try {
+    const app = await loadApp();
+    return app(req, res);
+  } catch (error) {
+    const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error("[api] falha ao carregar a aplicação:", error);
+    res.statusCode = 500;
+    res.setHeader("content-type", "application/json; charset=utf-8");
+    res.setHeader("cache-control", "no-store");
+    res.end(JSON.stringify({ error: "API indisponível.", detail: message }));
+  }
 }
