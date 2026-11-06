@@ -9,10 +9,11 @@
 
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { closePool, databaseUrl, describeDbError, getPool } from "./index";
 
-const SCHEMA_FILE = fileURLToPath(new URL("./schema.sql", import.meta.url));
+// Caminho relativo à raiz do projeto (os scripts correm sempre de lá).
+const SCHEMA_FILE = path.join(process.cwd(), "db", "schema.sql");
 const VERSION = "0002_contas_clientes";
 
 async function main() {
